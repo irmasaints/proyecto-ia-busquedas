@@ -1,10 +1,8 @@
-# no_informada.py
 from collections import deque
 
 def obtener_vecinos(pos, mapa):
     filas, columnas = len(mapa), len(mapa[0])
     r, c = pos
-    # ORDEN 4-CONECTADO: Arriba, Derecha, Abajo, Izquierda
     movimientos = [(-1, 0), (0, 1), (1, 0), (0, -1)] 
     vecinos = []
     for dr, dc in movimientos:
@@ -64,8 +62,6 @@ def buscar_dfs(mapa, inicio, meta):
         vecinos = obtener_vecinos(nodo_actual, mapa)
         hijos_validos = []
         
-        # En DFS invertimos la inserción para que al extraer el tope de la pila
-        # se siga respetando el orden original: Arriba, Derecha, Abajo, Izquierda
         for vecino in reversed(vecinos): 
             if vecino not in visitados and vecino not in [n for n, _ in pila]:
                 pila.append((vecino, camino + [vecino]))

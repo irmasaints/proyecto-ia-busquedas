@@ -1,4 +1,3 @@
-# local.py
 import random
 import math
 

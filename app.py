@@ -1,4 +1,9 @@
-# app.py
+# Equipo 4
+# Hernandez Ornelas Mariel
+# Sánchez Santos Irma Nayeli
+# Maldonado Romero Daniel
+
+
 import streamlit as st
 from estilos import aplicar_estilos_personalizados, PALETA
 
@@ -36,12 +41,51 @@ if "ganador_gato" not in st.session_state:
     st.session_state.ganador_gato = None
 if "nodos_evaluados" not in st.session_state:
     st.session_state.nodos_evaluados = 0
+if "quien_empieza_gato" not in st.session_state:
+    st.session_state.quien_empieza_gato = "IA"
+if "quien_empieza_gato_previo" not in st.session_state:
+    st.session_state.quien_empieza_gato_previo = "IA"
 
 def limpiar_calculo():
     st.session_state.paso_idx = 0
     st.session_state.historial = []
     st.session_state.camino = []
     st.session_state.calculado = False
+
+
+def reiniciar_gato():
+    st.session_state.tablero_gato = [" "] * 9
+    st.session_state.ganador_gato = None
+    st.session_state.historial = []
+    st.session_state.calculado = False
+    st.session_state.paso_idx = 0
+    st.session_state.nodos_evaluados = 0
+
+
+def ejecutar_turno_ia_gato(algoritmo):
+    """Ejecuta una jugada de la IA usando el algoritmo seleccionado."""
+    tablero = st.session_state.tablero_gato
+
+    if st.session_state.ganador_gato is not None:
+        return
+
+    if " " not in tablero:
+        st.session_state.ganador_gato = verificar_ganador(tablero)
+        return
+
+    if algoritmo == "Minimax sin poda":
+        mov, pasos, _, nodos = obtener_mejor_movimiento_sin_poda(list(tablero))
+    else:
+        mov, pasos, _, nodos = obtener_mejor_movimiento_con_poda(list(tablero))
+
+    if mov is not None:
+        tablero[mov] = "X"
+        st.session_state.tablero_gato = tablero
+        st.session_state.historial = pasos
+        st.session_state.calculado = True
+        st.session_state.paso_idx = 0
+        st.session_state.nodos_evaluados = nodos
+        st.session_state.ganador_gato = verificar_ganador(tablero)
 
 # --- SIDEBAR CONFIGURACIÓN ---
 st.sidebar.subheader("⚙️ Parámetros del Sistema")
@@ -57,9 +101,7 @@ if problema != st.session_state.problema_previo:
     limpiar_calculo()
     # Si salimos del Gato, limpiamos también su estado
     if st.session_state.problema_previo == "Gato (Tic-Tac-Toe)":
-        st.session_state.tablero_gato = [" "] * 9
-        st.session_state.ganador_gato = None
-        st.session_state.nodos_evaluados = 0
+        reiniciar_gato()
     st.session_state.problema_previo = problema
 
 if problema == "Laberinto (Frozen Lake)":
@@ -79,6 +121,19 @@ elif problema == "Gato (Tic-Tac-Toe)":
         "Minimax sin poda",
         "Minimax con poda Alpha-Beta"
     ])
+    quien_empieza_gato = st.sidebar.radio(
+        "¿Quién empieza la partida?",
+        ["IA", "Usuario"],
+        index=0 if st.session_state.quien_empieza_gato == "IA" else 1
+    )
+    st.session_state.quien_empieza_gato = quien_empieza_gato
+
+    # Si cambia quién empieza, reiniciamos el tablero para evitar turnos mezclados.
+    if st.session_state.quien_empieza_gato != st.session_state.quien_empieza_gato_previo:
+        reiniciar_gato()
+        st.session_state.quien_empieza_gato_previo = st.session_state.quien_empieza_gato
+        st.rerun()
+
     mapa_activo = None
 
 # --- CARD INFO ---
@@ -89,8 +144,9 @@ st.markdown(f'<div class="card-info"><h4>Entorno Activo: {problema}</h4><p>Visua
 # BLOQUE DEL GATO — sale aquí antes del resto para no interferir
 # ================================================================
 if problema == "Gato (Tic-Tac-Toe)":
-    st.markdown("### 🎮 Tú eres O — La IA es X")
+    st.markdown("### 🎮 Gato: Tú eres O — La IA es X")
     st.markdown(f"Algoritmo activo: **{algoritmo}**")
+    st.markdown(f"Empieza: **{st.session_state.quien_empieza_gato}**")
 
     st.markdown("""
     <style>
@@ -111,6 +167,10 @@ if problema == "Gato (Tic-Tac-Toe)":
     }
     </style>
     """, unsafe_allow_html=True)
+
+    # Si se eligió que empiece la IA y el tablero está vacío, la IA hace la primera jugada.
+    if st.session_state.quien_empieza_gato == "IA" and st.session_state.tablero_gato == [" "] * 9:
+        ejecutar_turno_ia_gato(algoritmo)
 
     tablero = st.session_state.tablero_gato
     ganador = st.session_state.ganador_gato
@@ -137,26 +197,14 @@ if problema == "Gato (Tic-Tac-Toe)":
                     disabled=deshabilitado,
                     use_container_width=True
                 ):
-                    # Jugada del humano (O)
+                    # Jugada del usuario (O)
                     tablero[i] = "O"
-                    ganador = verificar_ganador(tablero)
-
-                    if not ganador:
-                        if algoritmo == "Minimax sin poda":
-                            mov, pasos, _, nodos = obtener_mejor_movimiento_sin_poda(list(tablero))
-                        else:
-                            mov, pasos, _, nodos = obtener_mejor_movimiento_con_poda(list(tablero))
-
-                        if mov is not None:
-                            tablero[mov] = "X"
-                            st.session_state.historial = pasos
-                            st.session_state.calculado = True
-                            st.session_state.paso_idx = 0
-                            st.session_state.nodos_evaluados = nodos
-                            ganador = verificar_ganador(tablero)
-
                     st.session_state.tablero_gato = tablero
-                    st.session_state.ganador_gato = ganador
+                    st.session_state.ganador_gato = verificar_ganador(tablero)
+
+                    # Si todavía no hay ganador, responde la IA (X).
+                    ejecutar_turno_ia_gato(algoritmo)
+
                     st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -211,12 +259,7 @@ if problema == "Gato (Tic-Tac-Toe)":
 
     st.markdown("---")
     if st.button("🔄 Nueva partida"):
-        st.session_state.tablero_gato = [" "] * 9
-        st.session_state.ganador_gato = None
-        st.session_state.historial = []
-        st.session_state.calculado = False
-        st.session_state.paso_idx = 0
-        st.session_state.nodos_evaluados = 0
+        reiniciar_gato()
         st.rerun()
 
     st.stop()  # evita que el resto del código se ejecute para el Gato

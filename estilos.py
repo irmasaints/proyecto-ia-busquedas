@@ -1,4 +1,3 @@
-# estilos.py
 import streamlit as st
 
 PALETA = {
@@ -13,13 +12,11 @@ PALETA = {
 def aplicar_estilos_personalizados():
     st.markdown(f"""
         <style>
-        /* 1. Fondo general */
         .stApp {{
             background-color: {PALETA['fondo_oscuro']};
             color: {PALETA['janna']};
         }}
         
-        /* --- NUEVO: Hacer transparente la barra blanca superior --- */
         [data-testid="stHeader"] {{
             background-color: transparent !important;
         }}
@@ -28,7 +25,7 @@ def aplicar_estilos_personalizados():
             color: {PALETA['janna']} !important;
         }}
         
-        /* 2. SIDEBAR CLARO Y DE ALTO CONTRASTE */
+
         [data-testid="stSidebar"] {{
             background-color: #f1f5f9 !important;
             border-right: 3px solid {PALETA['bondi_blue']};
@@ -45,7 +42,7 @@ def aplicar_estilos_personalizados():
             fill: {PALETA['bondi_blue']} !important;
         }}
 
-        /* Selectores dentro del Sidebar */
+
         [data-testid="stSidebar"] div[data-baseweb="select"] {{
             background-color: #ffffff !important;
             border: 2px solid {PALETA['eden']} !important;
@@ -56,7 +53,7 @@ def aplicar_estilos_personalizados():
             font-weight: 700 !important;
         }}
         
-        /* Lista desplegable de los selectores */
+
         div[data-baseweb="menu"] {{
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
@@ -71,7 +68,7 @@ def aplicar_estilos_personalizados():
             color: {PALETA['bondi_blue']} !important;
         }}
         
-        /* 3. BOTONES: SOLUCIÓN AL TEXTO INVISIBLE */
+
         div.stButton > button {{
             background-color: {PALETA['bondi_blue']} !important;
             border: 2px solid {PALETA['sinbad']} !important;

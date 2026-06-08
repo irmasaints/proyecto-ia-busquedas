@@ -1,4 +1,3 @@
-# informada.py
 import heapq
 
 def heuristica_manhattan(p1, p2):
@@ -28,7 +27,6 @@ def buscar_greedy(mapa, inicio, meta):
             
         visitados.append(nodo_actual)
 
-        # --- FILTRO ACADÉMICO PARA OPEN ---
         lista_open_limpia = []
         vistos_en_open = set()
         for h, n, _ in sorted(prioridad_queue):
@@ -49,7 +47,7 @@ def buscar_greedy(mapa, inicio, meta):
                 heapq.heappush(prioridad_queue, (h_vec, vecino, camino + [vecino]))
                 hijos_validos.append((vecino, h_vec))
                 
-        # Refrescar la lista OPEN después de añadir a los hijos
+
         lista_open_limpia = []
         vistos_en_open = set()
         for h, n, _ in sorted(prioridad_queue):
