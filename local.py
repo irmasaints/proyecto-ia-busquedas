@@ -62,6 +62,8 @@ def buscar_hill_climbing(inicio):
                 historial_pasos.append((estado_actual, abs(f_actual)))
                 un_vecino_mejoro = True
                 break  # ¡Lógica de Escalada Simple! Dejamos de revisar los demás vecinos
+                       # Si fuera Máxima Pendiente no habría break: revisaría los 56 vecinos y elegiría
+                       # el MEJOR de todos 
                 
         # Criterio de paro: Si ningún vecino de todo el vecindario mejoró, se detiene
         if not un_vecino_mejoro:
@@ -87,7 +89,7 @@ def buscar_recocido_simulado(inicio):
     
     historial_pasos.append((estado_actual, e_actual))
     
-    while T > T_min and e_actual > 0:
+    while T > T_min and e_actual > 0: # Mientras no se alcance la solución óptima (E=0) y la temperatura no sea demasiado baja
         vecinos = obtener_vecinos_locales(estado_actual)
         # Seleccionamos un vecino al azar del vecindario
         vecino_aleatorio = random.choice(vecinos)
