@@ -19,10 +19,10 @@ from adversaria import (
 st.set_page_config(page_title="IA Visualizer Academic", layout="wide")
 aplicar_estilos_personalizados()
 
-st.title("🧠 Visualizador Matemático de Algoritmos IA")
+st.title("🧠 Visualizador de algoritmos de busqueda")
 st.markdown("---")
 
-# --- CONTROL DE LIMPIEZA AUTOMÁTICA EN CAMBIOS DE MENÚ ---
+
 if "paso_idx" not in st.session_state:
     st.session_state.paso_idx = 0
 if "historial" not in st.session_state:
@@ -52,7 +52,6 @@ def limpiar_calculo():
     st.session_state.camino = []
     st.session_state.calculado = False
 
-
 def reiniciar_gato():
     st.session_state.tablero_gato = [" "] * 9
     st.session_state.ganador_gato = None
@@ -60,7 +59,6 @@ def reiniciar_gato():
     st.session_state.calculado = False
     st.session_state.paso_idx = 0
     st.session_state.nodos_evaluados = 0
-
 
 def ejecutar_turno_ia_gato(algoritmo):
     """Ejecuta una jugada de la IA usando el algoritmo seleccionado."""
@@ -87,7 +85,7 @@ def ejecutar_turno_ia_gato(algoritmo):
         st.session_state.nodos_evaluados = nodos
         st.session_state.ganador_gato = verificar_ganador(tablero)
 
-# --- SIDEBAR CONFIGURACIÓN ---
+
 st.sidebar.subheader("⚙️ Parámetros del Sistema")
 problema = st.sidebar.selectbox("Selecciona el Problema:", [
     "Laberinto (Frozen Lake)",
@@ -96,10 +94,9 @@ problema = st.sidebar.selectbox("Selecciona el Problema:", [
     "Gato (Tic-Tac-Toe)"
 ])
 
-# Si el usuario cambia el problema en el menú, limpiamos la memoria
+# Si cambia el problema en el menú, limpiamos la memoria
 if problema != st.session_state.problema_previo:
     limpiar_calculo()
-    # Si salimos del Gato, limpiamos también su estado
     if st.session_state.problema_previo == "Gato (Tic-Tac-Toe)":
         reiniciar_gato()
     st.session_state.problema_previo = problema
@@ -128,7 +125,7 @@ elif problema == "Gato (Tic-Tac-Toe)":
     )
     st.session_state.quien_empieza_gato = quien_empieza_gato
 
-    # Si cambia quién empieza, reiniciamos el tablero para evitar turnos mezclados.
+
     if st.session_state.quien_empieza_gato != st.session_state.quien_empieza_gato_previo:
         reiniciar_gato()
         st.session_state.quien_empieza_gato_previo = st.session_state.quien_empieza_gato
@@ -136,15 +133,9 @@ elif problema == "Gato (Tic-Tac-Toe)":
 
     mapa_activo = None
 
-# --- CARD INFO ---
-st.markdown(f'<div class="card-info"><h4>Entorno Activo: {problema}</h4><p>Visualización didáctica con conjuntos estructurados y control manual.</p></div>', unsafe_allow_html=True)
 
-
-# ================================================================
-# BLOQUE DEL GATO — sale aquí antes del resto para no interferir
-# ================================================================
 if problema == "Gato (Tic-Tac-Toe)":
-    st.markdown("### 🎮 Gato: Tú eres O — La IA es X")
+    st.markdown("### 🎮 Tú eres O — La IA es X")
     st.markdown(f"Algoritmo activo: **{algoritmo}**")
     st.markdown(f"Empieza: **{st.session_state.quien_empieza_gato}**")
 
@@ -168,7 +159,6 @@ if problema == "Gato (Tic-Tac-Toe)":
     </style>
     """, unsafe_allow_html=True)
 
-    # Si se eligió que empiece la IA y el tablero está vacío, la IA hace la primera jugada.
     if st.session_state.quien_empieza_gato == "IA" and st.session_state.tablero_gato == [" "] * 9:
         ejecutar_turno_ia_gato(algoritmo)
 
@@ -176,12 +166,9 @@ if problema == "Gato (Tic-Tac-Toe)":
     ganador = st.session_state.ganador_gato
 
     def estilo_celda(valor):
-        if valor == "X":
-            return "X"
-        elif valor == "O":
-            return "O"
-        else:
-            return " "
+        if valor == "X": return "X"
+        elif valor == "O": return "O"
+        return " "
 
     st.markdown('<div class="tablero-gato">', unsafe_allow_html=True)
     for fila in range(3):
@@ -202,9 +189,8 @@ if problema == "Gato (Tic-Tac-Toe)":
                     st.session_state.tablero_gato = tablero
                     st.session_state.ganador_gato = verificar_ganador(tablero)
 
-                    # Si todavía no hay ganador, responde la IA (X).
+                    # Si el juego sigue, calcula de inmediato la respuesta de la IA
                     ejecutar_turno_ia_gato(algoritmo)
-
                     st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -217,26 +203,21 @@ if problema == "Gato (Tic-Tac-Toe)":
 
     st.markdown("---")
 
-    if ganador == "O":
-        st.success("¡Ganaste! 🎉")
-    elif ganador == "X":
-        st.error("Ganó la IA 🤖")
-    elif ganador == "empate":
-        st.warning("Empate 🤝")
+    if ganador == "O": st.success("¡Ganaste! 🎉")
+    elif ganador == "X": st.error("Ganó la IA 🤖")
+    elif ganador == "empate": st.warning("Empate 🤝")
 
     if st.session_state.calculado and len(st.session_state.historial) > 0:
         st.markdown("---")
-        st.markdown("### 📋 Bitácora del último movimiento IA")
+        st.markdown("### Controles del Recorrido Manual")
 
         col_btn1, col_btn2, col_txt = st.columns([1, 1, 3])
         with col_btn1:
-            if st.button("⬅️ PASO ANTERIOR"):
-                if st.session_state.paso_idx > 0:
-                    st.session_state.paso_idx -= 1
+            if st.button("⬅️ Paso Anterior"):
+                if st.session_state.paso_idx > 0: st.session_state.paso_idx -= 1
         with col_btn2:
-            if st.button("PASO SIGUIENTE ➡️"):
-                if st.session_state.paso_idx < len(st.session_state.historial) - 1:
-                    st.session_state.paso_idx += 1
+            if st.button("Paso Siguiente ➡️"):
+                if st.session_state.paso_idx < len(st.session_state.historial) - 1: st.session_state.paso_idx += 1
         with col_txt:
             st.markdown(f"<p style='margin-top:10px; font-weight:bold; font-size:18px;'>Paso: {st.session_state.paso_idx + 1} / {len(st.session_state.historial)}</p>", unsafe_allow_html=True)
 
@@ -262,13 +243,10 @@ if problema == "Gato (Tic-Tac-Toe)":
         reiniciar_gato()
         st.rerun()
 
-    st.stop()  # evita que el resto del código se ejecute para el Gato
+    st.stop()
 
 
-# ================================================================
-# BLOQUE LABERINTO, SOKOBAN Y 8 REINAS — igual que tenían
-# ================================================================
-if st.button("🧮 CARGAR Y CALCULAR RUTA DEL ALGORITMO"):
+if st.button("🧮 Cargar y Calcular Ruta del Algoritmo"):
     limpiar_calculo()
     if algoritmo == "BFS (Amplitud)":
         st.session_state.camino, st.session_state.historial = buscar_bfs(mapa_activo, inicio, meta)
@@ -319,17 +297,15 @@ def formatear_nodo(n):
 
 if st.session_state.calculado and len(st.session_state.historial) > 0:
     st.markdown("---")
-    st.markdown("### 🎛️ Controles del Recorrido Manual")
+    st.markdown("### Controles del Recorrido Manual")
 
     col_btn1, col_btn2, col_txt = st.columns([1, 1, 3])
     with col_btn1:
-        if st.button("⬅️ PASO ANTERIOR"):
-            if st.session_state.paso_idx > 0:
-                st.session_state.paso_idx -= 1
+        if st.button("⬅️ Paso Anterior"):
+            if st.session_state.paso_idx > 0: st.session_state.paso_idx -= 1
     with col_btn2:
-        if st.button("PASO SIGUIENTE ➡️"):
-            if st.session_state.paso_idx < len(st.session_state.historial) - 1:
-                st.session_state.paso_idx += 1
+        if st.button("Paso Siguiente ➡️"):
+            if st.session_state.paso_idx < len(st.session_state.historial) - 1: st.session_state.paso_idx += 1
     with col_txt:
         st.markdown(f"<p style='margin-top:10px; font-weight:bold; font-size:18px;'>Paso actual: {st.session_state.paso_idx + 1} / {len(st.session_state.historial)}</p>", unsafe_allow_html=True)
 
@@ -338,7 +314,7 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
 
     if problema == "8 Reinas":
         estado_reinas_actual, ataques_actual = st.session_state.historial[idx]
-        st.subheader("🗺️ Estado Gráfico del Tablero")
+        st.subheader("Estado Gráfico del Tablero")
         st.markdown(renderizar(mapa_activo, actual=estado_reinas_actual), unsafe_allow_html=True)
         if es_final:
             if ataques_actual == 0:
@@ -346,7 +322,7 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
             else:
                 st.warning(f"⚠️ El algoritmo local terminó y se detuvo en un óptimo local con {ataques_actual} ataques.")
         st.markdown("---")
-        st.subheader("📋 Bitácora Matemática de Desarrollo")
+        st.subheader("Desarrollo del Algoritmo")
         st.markdown(f"""
         <div class="box-ejercicio">
             <h4>PASO {idx + 1} — Configuración Activa de Reinas</h4>
@@ -364,10 +340,9 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
 
         col_mapa, col_bitacora = st.columns([1.3, 1.7])
         with col_mapa:
-            st.subheader("🗺️ Estado Gráfico")
             st.markdown(renderizar(mapa_activo, visitados=closed_list, camino=camino_final, actual=nodo_actual), unsafe_allow_html=True)
             if es_final and st.session_state.camino:
-                st.success(f"¡Meta encontrada! Camino de {len(st.session_state.camino)} pasos.")
+                st.success(f" Meta encontrada.")
 
         with col_bitacora:
             st.subheader("Desarrollo del Algoritmo")
@@ -395,15 +370,14 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
             """, unsafe_allow_html=True)
 else:
     if problema == "8 Reinas":
-        st.subheader("🗺️ Estado Gráfico del Tablero")
+        st.subheader("Estado Gráfico del Tablero")
         st.markdown(renderizar(mapa_activo), unsafe_allow_html=True)
         st.markdown("---")
-        st.subheader("📋 Bitácora Matemática de Desarrollo")
+        st.subheader("Desarrollo del Algoritmo")
         st.markdown('<div class="box-ejercicio"><h4>Esperando Inicialización...</h4><p>Presiona el botón de arriba para calcular la optimización local del tablero.</p></div>', unsafe_allow_html=True)
     else:
         col_mapa, col_bitacora = st.columns([1.3, 1.7])
         with col_mapa:
-            st.subheader("🗺️ Estado Gráfico")
             st.markdown(renderizar(mapa_activo if mapa_activo else [["S","G"]]), unsafe_allow_html=True)
         with col_bitacora:
             st.subheader("Desarrollo del Algoritmo")

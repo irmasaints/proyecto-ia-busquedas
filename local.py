@@ -25,12 +25,12 @@ def obtener_vecinos_locales(estado):
     """
     vecinos = []
     n = len(estado)
-    for col in range(n):
-        for fila in range(n):
-            if fila != estado[col]:
-                nuevo_estado = list(estado)
+    for col in range(n): #col recorre columnas
+        for fila in range(n): #fila recorre filas posibles para esa columna
+            if fila != estado[col]: #solo se genera un vecino si la reina se mueve a una fila diferente
+                nuevo_estado = list(estado) #creamos una copia para no modificar el estado original
                 nuevo_estado[col] = fila
-                vecinos.append(nuevo_estado)
+                vecinos.append(nuevo_estado) #agregamos el nuevo estado vecino a la lista de vecinos
     return vecinos
 
 def buscar_hill_climbing(inicio):
