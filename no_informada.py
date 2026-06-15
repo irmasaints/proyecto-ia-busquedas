@@ -1,12 +1,12 @@
 from collections import deque
 
 def obtener_vecinos(pos, mapa):
-    filas, columnas = len(mapa), len(mapa[0])
-    r, c = pos
+    filas, columnas = len(mapa), len(mapa[0]) #cantidad de filas y columnas del mapa
+    r, c = pos #posición actual del nodo (fila, columna)
     movimientos = [(-1, 0), (0, 1), (1, 0), (0, -1)] 
     vecinos = []
     for dr, dc in movimientos:
-        nr, nc = r + dr, c + dc
+        nr, nc = r + dr, c + dc #nueva fila y columna después de aplicar el movimiento
         # Ignorar tanto agujeros de Frozen Lake (H) como muros de Sokoban (#)
         if 0 <= nr < filas and 0 <= nc < columnas and mapa[nr][nc] not in ['H', '#']:
             vecinos.append((nr, nc))

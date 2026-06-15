@@ -3,12 +3,11 @@
 # Sánchez Santos Irma Nayeli
 # Maldonado Romero Daniel
 
-
 import streamlit as st
 from estilos import aplicar_estilos_personalizados, PALETA
 
 from no_informada import buscar_bfs, buscar_dfs
-from informada import buscar_greedy, buscar_a_estrella
+from informada import buscar_greedy, buscar_a_estrella, buscar_greedy_sokoban_2cajas, buscar_a_estrella_sokoban_2cajas
 from local import buscar_hill_climbing, buscar_recocido_simulado
 from adversaria import (
     obtener_mejor_movimiento_sin_poda,
@@ -21,7 +20,6 @@ aplicar_estilos_personalizados()
 
 st.title("🧠 Visualizador de algoritmos de busqueda")
 st.markdown("---")
-
 
 if "paso_idx" not in st.session_state:
     st.session_state.paso_idx = 0
@@ -61,12 +59,8 @@ def reiniciar_gato():
     st.session_state.nodos_evaluados = 0
 
 def ejecutar_turno_ia_gato(algoritmo):
-    """Ejecuta una jugada de la IA usando el algoritmo seleccionado."""
     tablero = st.session_state.tablero_gato
-
-    if st.session_state.ganador_gato is not None:
-        return
-
+    if st.session_state.ganador_gato is not None: return
     if " " not in tablero:
         st.session_state.ganador_gato = verificar_ganador(tablero)
         return
@@ -85,7 +79,7 @@ def ejecutar_turno_ia_gato(algoritmo):
         st.session_state.nodos_evaluados = nodos
         st.session_state.ganador_gato = verificar_ganador(tablero)
 
-
+# --- SIDEBAR CONFIGURACIÓN ---
 st.sidebar.subheader("⚙️ Parámetros del Sistema")
 problema = st.sidebar.selectbox("Selecciona el Problema:", [
     "Laberinto (Frozen Lake)",
@@ -94,7 +88,6 @@ problema = st.sidebar.selectbox("Selecciona el Problema:", [
     "Gato (Tic-Tac-Toe)"
 ])
 
-# Si cambia el problema en el menú, limpiamos la memoria
 if problema != st.session_state.problema_previo:
     limpiar_calculo()
     if st.session_state.problema_previo == "Gato (Tic-Tac-Toe)":
@@ -107,33 +100,34 @@ if problema == "Laberinto (Frozen Lake)":
     inicio, meta = (0, 0), (3, 3)
 elif problema == "Sokoban":
     algoritmo = st.sidebar.selectbox("Algoritmo de Búsqueda:", ["A* (A-Estrella)", "Greedy Best-First"])
-    mapa_activo = [["S", "F", "#", "F", "F"], ["F", "F", "#", "F", "G"], ["F", "F", "F", "F", "F"], ["#", "#", "F", "#", "#"]]
-    inicio, meta = (0, 0), (1, 4)
+    # MAPA CONFIGURADO Y OPTIMIZADO PARA MANIOBRAS DE 2 CAJAS (Mariel Original)
+    mapa_activo = [
+        ["S", "G", "F", "F", "G"],
+        ["F", "F", "#", "F", "F"],
+        ["F", "F", "F", "F", "F"],
+        ["F", "#", "#", "#", "F"],
+        ["F", "F", "F", "F", "F"]
+    ]
+    inicio, meta = ((0, 0), ((2, 1), (2, 3))), ((0, 1), (0, 4))
 elif problema == "8 Reinas":
     algoritmo = st.sidebar.selectbox("Algoritmo de Búsqueda:", ["Hill Climbing (Escalada)", "Recocido Simulado"])
     mapa_activo = [0, 1, 2, 3, 4, 5, 6, 7]
     inicio, meta = None, None
 elif problema == "Gato (Tic-Tac-Toe)":
-    algoritmo = st.sidebar.selectbox("Algoritmo de Búsqueda:", [
-        "Minimax sin poda",
-        "Minimax con poda Alpha-Beta"
-    ])
-    quien_empieza_gato = st.sidebar.radio(
-        "¿Quién empieza la partida?",
-        ["IA", "Usuario"],
-        index=0 if st.session_state.quien_empieza_gato == "IA" else 1
-    )
+    algoritmo = st.sidebar.selectbox("Algoritmo de Búsqueda:", ["Minimax sin poda", "Minimax con poda Alpha-Beta"])
+    quien_empieza_gato = st.sidebar.radio("¿Quién empieza la partida?", ["IA", "Usuario"], index=0 if st.session_state.quien_empieza_gato == "IA" else 1)
     st.session_state.quien_empieza_gato = quien_empieza_gato
-
 
     if st.session_state.quien_empieza_gato != st.session_state.quien_empieza_gato_previo:
         reiniciar_gato()
         st.session_state.quien_empieza_gato_previo = st.session_state.quien_empieza_gato
         st.rerun()
-
     mapa_activo = None
 
 
+# ================================================================
+# INTERFAZ DEL GATO
+# ================================================================
 if problema == "Gato (Tic-Tac-Toe)":
     st.markdown("### 🎮 Tú eres O — La IA es X")
     st.markdown(f"Algoritmo activo: **{algoritmo}**")
@@ -178,18 +172,10 @@ if problema == "Gato (Tic-Tac-Toe)":
             label = estilo_celda(tablero[i])
             deshabilitado = (tablero[i] != " ") or (ganador is not None)
             with cols[col]:
-                if st.button(
-                    label,
-                    key=f"celda_{i}",
-                    disabled=deshabilitado,
-                    use_container_width=True
-                ):
-                    # Jugada del usuario (O)
+                if st.button(label, key=f"celda_{i}", disabled=deshabilitado, use_container_width=True):
                     tablero[i] = "O"
                     st.session_state.tablero_gato = tablero
                     st.session_state.ganador_gato = verificar_ganador(tablero)
-
-                    # Si el juego sigue, calcula de inmediato la respuesta de la IA
                     ejecutar_turno_ia_gato(algoritmo)
                     st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -202,7 +188,6 @@ if problema == "Gato (Tic-Tac-Toe)":
     """, unsafe_allow_html=True)
 
     st.markdown("---")
-
     if ganador == "O": st.success("¡Ganaste! 🎉")
     elif ganador == "X": st.error("Ganó la IA 🤖")
     elif ganador == "empate": st.warning("Empate 🤝")
@@ -210,7 +195,6 @@ if problema == "Gato (Tic-Tac-Toe)":
     if st.session_state.calculado and len(st.session_state.historial) > 0:
         st.markdown("---")
         st.markdown("### Controles del Recorrido Manual")
-
         col_btn1, col_btn2, col_txt = st.columns([1, 1, 3])
         with col_btn1:
             if st.button("⬅️ Paso Anterior"):
@@ -242,10 +226,12 @@ if problema == "Gato (Tic-Tac-Toe)":
     if st.button("🔄 Nueva partida"):
         reiniciar_gato()
         st.rerun()
-
     st.stop()
 
 
+# ================================================================
+# SIMULADOR MÉTODOS CENTRALES (Laberinto, Sokoban, Reinas)
+# ================================================================
 if st.button("🧮 Cargar y Calcular Ruta del Algoritmo"):
     limpiar_calculo()
     if algoritmo == "BFS (Amplitud)":
@@ -253,9 +239,15 @@ if st.button("🧮 Cargar y Calcular Ruta del Algoritmo"):
     elif algoritmo == "DFS (Profundidad)":
         st.session_state.camino, st.session_state.historial = buscar_dfs(mapa_activo, inicio, meta)
     elif algoritmo == "Greedy Best-First":
-        st.session_state.camino, st.session_state.historial = buscar_greedy(mapa_activo, inicio, meta)
+        if problema == "Sokoban":
+            st.session_state.camino, st.session_state.historial = buscar_greedy_sokoban_2cajas(mapa_activo, inicio, meta)
+        else:
+            st.session_state.camino, st.session_state.historial = buscar_greedy(mapa_activo, inicio, meta)
     elif algoritmo == "A* (A-Estrella)":
-        st.session_state.camino, st.session_state.historial = buscar_a_estrella(mapa_activo, inicio, meta)
+        if problema == "Sokoban":
+            st.session_state.camino, st.session_state.historial = buscar_a_estrella_sokoban_2cajas(mapa_activo, inicio, meta)
+        else:
+            st.session_state.camino, st.session_state.historial = buscar_a_estrella(mapa_activo, inicio, meta)
     elif algoritmo == "Hill Climbing (Escalada)":
         st.session_state.camino, st.session_state.historial = buscar_hill_climbing(mapa_activo)
     elif algoritmo == "Recocido Simulado":
@@ -278,13 +270,25 @@ def renderizar(mapa, visitados=None, camino=None, actual=None):
         return html + "</div>"
 
     filas, columnas = len(mapa), len(mapa[0])
+    
+    if problema == "Sokoban" and isinstance(actual, tuple) and isinstance(actual[0], tuple):
+        pos_j, pos_cajas = actual
+        caja1, caja2 = pos_cajas
+        metas_g = [(0, 1), (0, 4)] 
+    else:
+        pos_j, caja1, caja2 = actual, None, None
+        metas_g = [(3, 3)] if problema == "Laberinto (Frozen Lake)" else []
+
     html = f"<div style='display: grid; grid-template-columns: repeat({columnas}, 65px); gap: 10px; justify-content: center;'>"
     for r in range(filas):
         for c in range(columnas):
             color = PALETA["janna"]
             icono = ""
-            if (r, c) == actual: color, icono = PALETA["bondi_blue"], "🤖"
-            elif (r, c) == meta: color, icono = PALETA["san_marino"], "🏆"
+            
+            # CAMBIO DE AVATAR: Colocamos el emoji del operario del almacén en lugar del robot
+            if (r, c) == pos_j: color, icono = PALETA["bondi_blue"], "👷‍♂️"
+            elif (r, c) == caja1 or (r, c) == caja2: color, icono = "#d97706", "📦"
+            elif (r, c) in metas_g: color, icono = PALETA["san_marino"], "🏆"
             elif mapa[r][c] in ["H", "#"]: color, icono = PALETA["eden"], "🧱"
             elif (r, c) in camino: color, icono = PALETA["sinbad"], "✨"
             elif (r, c) in visitados: color, icono = "#233142", "•"
@@ -293,6 +297,12 @@ def renderizar(mapa, visitados=None, camino=None, actual=None):
     return html + "</div>"
 
 def formatear_nodo(n):
+    if isinstance(n, tuple) and len(n) == 2 and isinstance(n[0], tuple) and isinstance(n[1], tuple):
+        pos_j, pos_cajas = n
+        # Sincronizamos el texto de la bitácora para que muestre el mismo emoji del operario
+        return f"👷‍♂️({pos_j[0]+1},{pos_j[1]+1}) 📦[{formatear_nodo(pos_cajas)}]"
+    if isinstance(n, tuple) and len(n) == 2 and isinstance(n[0], tuple):
+        return " y ".join([f"({c[0]+1},{c[1]+1})" for c in n])
     return f"({n[0]+1},{n[1]+1})"
 
 if st.session_state.calculado and len(st.session_state.historial) > 0:
@@ -317,10 +327,8 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
         st.subheader("Estado Gráfico del Tablero")
         st.markdown(renderizar(mapa_activo, actual=estado_reinas_actual), unsafe_allow_html=True)
         if es_final:
-            if ataques_actual == 0:
-                st.success("👑 ¡Solución perfecta encontrada! 0 ataques mutuos entre reinas.")
-            else:
-                st.warning(f"⚠️ El algoritmo local terminó y se detuvo en un óptimo local con {ataques_actual} ataques.")
+            if ataques_actual == 0: st.success("👑 ¡Solución perfecta encontrada! 0 ataques mutuos entre reinas.")
+            else: st.warning(f"⚠️ El algoritmo local terminó y se detuvo en un óptimo local con {ataques_actual} ataques.")
         st.markdown("---")
         st.subheader("Desarrollo del Algoritmo")
         st.markdown(f"""
@@ -328,10 +336,6 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
             <h4>PASO {idx + 1} — Configuración Activa de Reinas</h4>
             <p class="linea-open">Posición de Reinas (Estructura de columnas): {estado_reinas_actual}</p>
             <p class="linea-closed">💥 Número Total de Parejas en Conflicto / Ataques: {ataques_actual}</p>
-            <hr style="border-color:{PALETA['eden']}; margin:10px 0;">
-            <p style="font-size:14px; font-family:sans-serif; color:{PALETA['janna']} !important;">
-            {"<b>Criterio de Paro Cumplido:</b> El algoritmo local finalizó porque ninguna de las modificaciones adyacentes del vecindario ofrece un mejor resultado." if es_final else "El algoritmo evalúa de forma consecutiva las celdas adyacentes modificando la posición de una reina por columna buscando maximizar su desempeño."}
-            </p>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -341,12 +345,12 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
         col_mapa, col_bitacora = st.columns([1.3, 1.7])
         with col_mapa:
             st.markdown(renderizar(mapa_activo, visitados=closed_list, camino=camino_final, actual=nodo_actual), unsafe_allow_html=True)
-            if es_final and st.session_state.camino:
-                st.success(f" Meta encontrada.")
+            if es_final and st.session_state.camino: st.success(f" Meta encontrada.")
 
         with col_bitacora:
             st.subheader("Desarrollo del Algoritmo")
             nodo_str = formatear_nodo(nodo_actual)
+            
             if algoritmo in ["BFS (Amplitud)", "DFS (Profundidad)"]:
                 str_hijos = "{" + ", ".join([formatear_nodo(n) for n in hijos]) + "}"
                 str_open = "[" + ", ".join([formatear_nodo(n) for n in open_list]) + "]"
@@ -355,10 +359,15 @@ if st.session_state.calculado and len(st.session_state.historial) > 0:
                 str_open = "[" + ", ".join([f"({formatear_nodo(n)}, h:{v})" for n, v in open_list]) + "]"
             str_closed = "{" + ", ".join([formatear_nodo(n) for n in closed_list]) + "}"
             etiqueta_estructura = "Pila" if algoritmo == "DFS (Profundidad)" else ("Cola" if algoritmo == "BFS (Amplitud)" else "OPEN")
+            
             str_ruta = ""
             if es_final and st.session_state.camino:
-                ruta_formateada = [formatear_nodo(n) for n in st.session_state.camino]
+                if problema == "Sokoban":
+                    ruta_formateada = [formatear_nodo(est[1]) for est in st.session_state.camino]
+                else:
+                    ruta_formateada = [formatear_nodo(n) for n in st.session_state.camino]
                 str_ruta = f"<p style='color:{PALETA['sinbad']}; font-weight:bold; margin-top:15px; font-size:16px;'>📍 Ruta encontrada:<br>{' ➔ '.join(ruta_formateada)}</p>"
+                
             st.markdown(f"""
             <div class="box-ejercicio">
                 <h4 style="margin-bottom: 5px;">S{idx+1} — {nodo_str}</h4>

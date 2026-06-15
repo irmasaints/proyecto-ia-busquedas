@@ -31,7 +31,7 @@ def obtener_vecinos_locales(estado):
                 nuevo_estado = list(estado) #creamos una copia para no modificar el estado original
                 nuevo_estado[col] = fila
                 vecinos.append(nuevo_estado) #agregamos el nuevo estado vecino a la lista de vecinos
-    return vecinos
+    return vecinos #8 columnas x 7 filas posibles = 56 vecinos por estado
 
 def buscar_hill_climbing(inicio):
     """
@@ -41,14 +41,14 @@ def buscar_hill_climbing(inicio):
     """
     estado_actual = list(inicio)
     # Convención F(s) = -Ataques
-    f_actual = -calcular_ataques(estado_actual)
+    f_actual = -calcular_ataques(estado_actual) #negativo porque queremos maximizar F que equivale a minimizar Ataques
     historial_pasos = []
     
     # Registramos el paso inicial en el historial (se guarda el número positivo para la interfaz)
     historial_pasos.append((estado_actual, abs(f_actual)))
     
-    while True:
-        vecinos = obtener_vecinos_locales(estado_actual)
+    while True: #ciclo infinito que se detendrá por el criterio de paro interno
+        vecinos = obtener_vecinos_locales(estado_actual) #generamos los 56 vecinos del estado actual
         un_vecino_mejoro = False
         
         # PROCEDIMIENTO DE ESCALADA SIMPLE:
@@ -78,7 +78,7 @@ def buscar_recocido_simulado(inicio):
     """
     estado_actual = list(inicio)
     # E(s) = Ataques
-    e_actual = calcular_ataques(estado_actual)
+    e_actual = calcular_ataques(estado_actual) #No es negativo porque queremos minimizar E que es igual a Ataques
     historial_pasos = []
     
     # Parámetros iniciales del cronograma de enfriamiento
@@ -92,10 +92,10 @@ def buscar_recocido_simulado(inicio):
         vecinos = obtener_vecinos_locales(estado_actual)
         # Seleccionamos un vecino al azar del vecindario
         vecino_aleatorio = random.choice(vecinos)
-        e_v = calcular_ataques(vecino_aleatorio)
+        e_v = calcular_ataques(vecino_aleatorio) #e_v es la energía del vecino
         
         # Cálculo del cambio de energía deltaE = E(s') - E(s)
-        delta_e = e_v - e_actual
+        delta_e = e_v - e_actual 
         
         # Criterio de Aceptación:
         if delta_e <= 0:
@@ -106,7 +106,7 @@ def buscar_recocido_simulado(inicio):
         else:
             # Si el vecino empeora (deltaE > 0), sorteamos con la probabilidad de Boltzmann
             probabilidad = math.exp(-delta_e / T)
-            if random.random() < probabilidad:
+            if random.random() < probabilidad: #se genera un número aleatorio entre 0 y 1, si es menor que la probabilidad calculada, se acepta el movimiento peor
                 estado_actual = vecino_aleatorio
                 e_actual = e_v
                 historial_pasos.append((estado_actual, e_actual))
