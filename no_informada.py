@@ -49,7 +49,7 @@ def buscar_dfs(mapa, inicio, meta):
     historial_pasos = []
 
     while pila:
-        nodo_actual, camino = pila.pop()
+        nodo_actual, camino = pila.pop() #Backtracking: se saca el último nodo agregado a la pila para explorar su camino antes que los demás
         
         if nodo_actual not in visitados:
             visitados.append(nodo_actual)
